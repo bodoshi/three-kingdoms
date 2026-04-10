@@ -46,8 +46,11 @@ const ADJ={lord:['strat','cmdC'],strat:['lord','spy','raid'],spy:['strat','raid'
 function posScore(c,pid){
   const w=posW[pid];
   const base=w[0]*c.wu+w[1]*c.zhi+w[2]*c.tong+w[3]*c.zheng+w[4]*c.mei;
-  const ra=RA[pid];const roleBonus=ra?(ra.S&&ra.S.includes(c.name)?10:ra.A&&ra.A.includes(c.name)?7:ra.B&&ra.B.includes(c.name)?4:0):0;
-  return base+roleBonus;
+  const ra=RA[pid];
+  const tierBase=ra?(ra.S&&ra.S.includes(c.name)?10:ra.A&&ra.A.includes(c.name)?7:ra.B&&ra.B.includes(c.name)?4:0):0;
+  if(!tierBase) return base;
+  const compensate=base<55?2.5:base<65?2.0:base<75?1.5:base<85?1.0:0.5;
+  return base+Math.round(tierBase*compensate);
 }
 
 function shuffle(a){let b=[...a];for(let i=b.length-1;i>0;i--){let j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]];}return b;}
