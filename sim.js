@@ -94,6 +94,12 @@ let scoreDiffs=[];
 let decidedByCounter=0,decidedBySkill=0,decidedByVariance=0;
 let totalBaseGap=0,totalBaseCount=0;
 
+// 链式加成统计
+let chainFires=0,chainTotalVal=0;
+const chainByRoute={};
+const chainMarginDist={decisive:0,clear:0,close:0};
+let snowballGames=0; // 前3阶段全胜→后续全胜的局数
+
 for(let g=0;g<N;g++){
   const sampled=stratifiedSample(allChars, 48, 6);
   const pool1=sampled.slice(0,24), pool2=sampled.slice(24,48);
@@ -102,6 +108,9 @@ for(let g=0;g<N;g++){
 
   let sP=0,sC=0;
   let totalCounterImpact=0,totalSkillImpact=0,totalVarImpact=0;
+
+  // 记录每阶段结果和margin，用于链式加成
+  const prevResults={};
 
   phases.forEach(bp=>{
     if(bp.slots.some(s=>!f1[s])||bp.slots.some(s=>!f2[s]))return;
@@ -140,8 +149,54 @@ for(let g=0;g<N;g++){
       if(sk&&sk.phases.includes(bp.id)&&Math.random()<0.45){cT+=sk.val;skillFires++;totalSkillImpact+=sk.val;}
     });
 
+    // === 链式加成（margin-based）===
+    const CAP=8;
+    let chainP=0,chainC=0;
+    function addChain(pB,cB,route){
+      if(pB>0&&chainP<CAP){const a=Math.min(pB,CAP-chainP);chainP+=a;pT+=a;chainFires++;chainTotalVal+=a;if(!chainByRoute[route])chainByRoute[route]=0;chainByRoute[route]+=a;}
+      if(cB>0&&chainC<CAP){const a=Math.min(cB,CAP-chainC);chainC+=a;cT+=a;chainFires++;chainTotalVal+=a;if(!chainByRoute[route])chainByRoute[route]=0;chainByRoute[route]+=a;}
+    }
+    const spy=prevResults.spy,strat=prevResults.strat,raid=prevResults.raid,naval=prevResults.naval,land=prevResults.land;
+
+    // 间谍→军师/奇袭 (margin-based)
+    if(spy&&(bp.id==='strat'||bp.id==='raid')){
+      const v=spy.margin==='decisive'?6:spy.margin==='close'?2:4;
+      spy.result==='win'?addChain(v,0,'spy->strat/raid'):spy.result==='lose'&&addChain(0,v,'spy->strat/raid');
+    }
+    // 军师→水军/陆军 (margin-based, NEW)
+    if(strat&&(bp.id==='naval'||bp.id==='land')){
+      const v=strat.margin==='decisive'?5:strat.margin==='close'?1:3;
+      strat.result==='win'?addChain(v,0,'strat->naval/land'):strat.result==='lose'&&addChain(0,v,'strat->naval/land');
+    }
+    // 奇袭→水军/陆军 (margin-based)
+    if(raid&&(bp.id==='naval'||bp.id==='land')){
+      const v=raid.margin==='decisive'?5:raid.margin==='close'?1:3;
+      raid.result==='win'?addChain(v,0,'raid->naval/land'):raid.result==='lose'&&addChain(0,v,'raid->naval/land');
+    }
+    // 水军→陆军 (margin-based, NEW)
+    if(naval&&bp.id==='land'){
+      const v=naval.margin==='decisive'?5:naval.margin==='close'?1:3;
+      naval.result==='win'?addChain(v,0,'naval->land'):naval.result==='lose'&&addChain(0,v,'naval->land');
+    }
+    // 水军/陆军→中军 (margin-based, NEW)
+    if(bp.id==='center'){
+      if(naval){
+        const v=naval.margin==='decisive'?3:naval.margin==='close'?1:2;
+        naval.result==='win'?addChain(v,0,'naval->center'):naval.result==='lose'&&addChain(0,v,'naval->center');
+      }
+      if(land){
+        const v=land.margin==='decisive'?3:land.margin==='close'?1:2;
+        land.result==='win'?addChain(v,0,'land->center'):land.result==='lose'&&addChain(0,v,'land->center');
+      }
+    }
+
     const diff=pT-cT;
+    const absDiff=Math.abs(diff);
     const r=diff>1?'win':diff<-1?'lose':'draw';
+    const margin=absDiff>15?'decisive':absDiff>5?'clear':'close';
+    prevResults[bp.id]={result:r,margin};
+    if(r!=='draw')chainMarginDist[margin]++;
+
     const pts=bp.weight;
     sP+=r==='win'?pts*0.7:r==='lose'?pts*0.3:pts/2;
     sC+=r==='win'?pts*0.3:r==='lose'?pts*0.7:pts/2;
@@ -151,6 +206,12 @@ for(let g=0;g<N;g++){
     if(gBond>0)bondGames++;
   });
 
+  // 检测雪球效应：前3阶段(spy/strat/raid)全胜 → 后续(naval/land/center)也全胜？
+  const early=['spy','strat','raid'],late=['naval','land','center'];
+  const earlyAllWin=early.every(id=>prevResults[id]&&prevResults[id].result==='win');
+  const lateAllWin=late.every(id=>prevResults[id]&&prevResults[id].result==='win');
+  if(earlyAllWin&&lateAllWin)snowballGames++;
+
   scoreDiffs.push(sP-sC);
   if(sP>sC)wins++;else if(sC>sP)losses++;else draws++;
   if(totalCounterImpact>totalSkillImpact&&totalCounterImpact>totalVarImpact)decidedByCounter++;
@@ -158,7 +219,7 @@ for(let g=0;g<N;g++){
   else decidedByVariance++;
 }
 
-console.log('=== '+N+' 局理性人模拟（分层抽样+智能选将+最优布阵+角色加成）===\n');
+console.log('=== '+N+' 局理性人模拟（含全链路margin-based加成）===\n');
 console.log('【胜负分布】');
 console.log('P1胜/负/平:',wins,losses,draws,'  胜率:'+Math.round(wins/N*100)+'%');
 const avg=scoreDiffs.reduce((a,b)=>a+b,0)/N;
@@ -177,6 +238,16 @@ console.log('  克制:     '+(counterFires/N).toFixed(2)+'/局  有克制局:'+M
 console.log('  羁绊同阵: '+(bondSameFires/N).toFixed(2)+'/局');
 console.log('  羁绊邻接: '+(bondAdjFires/N).toFixed(2)+'/局');
 console.log('  技能:     '+(skillFires/N).toFixed(2)+'/局');
+
+console.log('\n【链式加成统计】');
+console.log('  触发次数: '+(chainFires/N).toFixed(2)+'/局');
+console.log('  平均加成: '+(chainTotalVal/N).toFixed(2)+'/局');
+console.log('  各链路贡献:');
+Object.entries(chainByRoute).sort((a,b)=>b[1]-a[1]).forEach(([route,val])=>{
+  console.log('    '+route.padEnd(20)+': '+(val/N).toFixed(2)+'/局');
+});
+console.log('  胜利程度分布: decisive '+chainMarginDist.decisive+' / clear '+chainMarginDist.clear+' / close '+chainMarginDist.close);
+console.log('  雪球效应(前3全胜→后3全胜): '+snowballGames+'局('+Math.round(snowballGames/N*100)+'%)');
 
 console.log('\n【胜负决定因素】');
 console.log('  克制主导: '+Math.round(decidedByCounter/N*100)+'%');
