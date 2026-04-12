@@ -1,6 +1,5 @@
 *
 !.gitignore
-!three-kingdoms-game.html
 !index.html
 !sim.js
 !peerjs.min.js

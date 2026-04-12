@@ -1,5 +1,5 @@
 const fs=require('fs');
-const html=fs.readFileSync('three-kingdoms-game.html','utf8');
+const html=fs.readFileSync('index.html','utf8');
 
 // 提取数据
 const charMatch=html.match(/const ALL_CHARS\s*=\s*\[([\s\S]*?)\];/);
