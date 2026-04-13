@@ -1,5 +1,10 @@
 *
 !.gitignore
-!index.html
 !sim.js
-!peerjs.min.js
+!package.json
+!vercel.json
+!public/
+!public/index.html
+!public/peerjs.min.js
+!api/
+!api/hall-of-fame.js
