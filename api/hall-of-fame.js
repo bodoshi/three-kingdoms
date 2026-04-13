@@ -1,4 +1,9 @@
-import { kv } from '@vercel/kv';
+import { Redis } from '@upstash/redis';
+
+const kv = new Redis({
+  url: process.env.UPSTASH_REDIS_REST_URL,
+  token: process.env.UPSTASH_REDIS_REST_TOKEN,
+});
 
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
@@ -150,7 +155,7 @@ async function handlePost(req) {
   await kv.set(rlKey, 1, { ex: RATE_LIMIT_SEC });
 
   // Get or init player data
-  const existing = await kv.hgetall(playerKey) || {};
+  const existing = (await kv.hgetall(playerKey)) || {};
   const data = {
     display_name: cleanName,
     total_games: (existing.total_games || 0) + 1,
