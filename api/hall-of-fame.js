@@ -244,6 +244,17 @@ export default async function handler(req) {
 
   try {
     const url = new URL(req.url, `https://${req.headers.get('host')}`);
+
+    // Diagnostic ping — no Redis, just check env vars exist
+    if (url.searchParams.get('ping') !== null) {
+      return json({
+        ok: true,
+        hasUrl: !!process.env.UPSTASH_REDIS_REST_URL,
+        hasToken: !!process.env.UPSTASH_REDIS_REST_TOKEN,
+        urlPrefix: (process.env.UPSTASH_REDIS_REST_URL || '').slice(0, 30) + '...',
+      });
+    }
+
     if (req.method === 'GET') return handleGet(url);
     if (req.method === 'POST') return handlePost(req);
     return json({ error: 'Method not allowed' }, 405);
