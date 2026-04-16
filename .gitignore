@@ -8,3 +8,4 @@
 !public/peerjs.min.js
 !api/
 !api/hall-of-fame.js
+!api/ai-proxy.js
