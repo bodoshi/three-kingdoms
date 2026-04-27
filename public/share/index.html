@@ -1,0 +1,1561 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>一个三国游戏让我重写了自己的工作方式 · 产品随笔</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;500;600;700;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #F5F0E5;
+    --bg-code: #ECE5D4;
+    --bg-quote: #EFE7D4;
+    --ink: #1a1410;
+    --ink-soft: #4a3f35;
+    --ink-mute: #857a6b;
+    --accent: #9B2D20;
+    --accent-soft: #C2A878;
+    --rule: #D8CDB4;
+    --serif: 'Noto Serif SC', 'Source Han Serif SC', 'Songti SC', SimSun, serif;
+    --mono: 'JetBrains Mono', 'SF Mono', Consolas, monospace;
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--serif);
+    font-size: 18px;
+    line-height: 1.85;
+    -webkit-font-smoothing: antialiased;
+    font-feature-settings: "palt" 1;
+  }
+
+  .grain {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    opacity: .035;
+    z-index: 1;
+    background-image: url("data:image/svg+xml;utf8,<svg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  }
+
+  nav.top {
+    position: sticky;
+    top: 0;
+    backdrop-filter: blur(10px);
+    background: rgba(245, 240, 229, 0.82);
+    border-bottom: 1px solid var(--rule);
+    z-index: 50;
+    padding: 14px 32px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 13px;
+    letter-spacing: 0.15em;
+    color: var(--ink-soft);
+  }
+
+  nav.top .brand {
+    font-weight: 600;
+    text-transform: uppercase;
+  }
+
+  nav.top .brand span {
+    color: var(--accent);
+  }
+
+  nav.top .progress {
+    font-variant-numeric: tabular-nums;
+    font-family: var(--mono);
+    font-size: 11px;
+  }
+
+  main {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 32px;
+    display: grid;
+    grid-template-columns: 1fr 840px 1fr;
+    gap: 0;
+    position: relative;
+    z-index: 2;
+  }
+
+  article {
+    grid-column: 2;
+    padding: 80px 0 120px;
+  }
+
+  aside.toc {
+    grid-column: 3;
+    position: sticky;
+    top: 80px;
+    align-self: start;
+    padding: 80px 0 0 48px;
+    font-size: 13px;
+    line-height: 1.7;
+  }
+
+  aside.toc .toc-label {
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    font-size: 10px;
+    color: var(--ink-mute);
+    margin-bottom: 6px;
+    font-weight: 600;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  aside.toc .toc-label .toc-pct {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    color: var(--accent);
+    font-weight: 500;
+  }
+
+  aside.toc .toc-rule {
+    height: 1px;
+    background: var(--rule);
+    margin-bottom: 14px;
+    position: relative;
+  }
+
+  aside.toc .toc-rule::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 1px;
+    width: var(--pct, 0%);
+    background: var(--accent);
+    transition: width 0.15s ease;
+  }
+
+  aside.toc ol {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    border-left: 1px solid var(--rule);
+  }
+
+  aside.toc li {
+    margin: 0;
+  }
+
+  aside.toc a {
+    display: block;
+    padding: 8px 0 8px 18px;
+    margin-left: -1px;
+    color: var(--ink-soft);
+    text-decoration: none;
+    border-left: 2px solid transparent;
+    transition: all 0.2s ease;
+  }
+
+  aside.toc a:hover {
+    color: var(--accent);
+    border-left-color: var(--accent-soft);
+  }
+
+  aside.toc a.active {
+    color: var(--accent);
+    border-left-color: var(--accent);
+    font-weight: 500;
+  }
+
+  aside.toc .day-tag {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--ink-mute);
+    margin-right: 8px;
+    letter-spacing: 0;
+  }
+
+  /* HERO */
+  .hero {
+    margin-bottom: 80px;
+    padding-bottom: 56px;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .hero .meta {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+    margin-bottom: 32px;
+  }
+
+  .hero .meta span:not(:last-child)::after {
+    content: "·";
+    margin: 0 12px;
+    color: var(--rule);
+  }
+
+  .hero h1 {
+    font-size: 52px;
+    line-height: 1.25;
+    font-weight: 900;
+    letter-spacing: -0.02em;
+    margin: 0 0 28px;
+    color: var(--ink);
+  }
+
+  .hero .subtitle {
+    font-size: 20px;
+    line-height: 1.6;
+    color: var(--ink-soft);
+    margin: 0 0 40px;
+    font-weight: 300;
+  }
+
+  .hero .byline {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    font-size: 14px;
+    color: var(--ink-soft);
+  }
+
+  .hero .byline .avatar {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .hero .byline .author {
+    font-weight: 500;
+    color: var(--ink);
+  }
+
+  .hero .byline .sep {
+    color: var(--rule);
+  }
+
+  /* LEAD */
+  .lead {
+    font-size: 22px;
+    line-height: 1.7;
+    color: var(--ink);
+    margin: 0 0 64px;
+    font-weight: 400;
+    font-style: italic;
+    padding-left: 20px;
+    border-left: 3px solid var(--accent);
+  }
+
+  /* LOG EXHIBIT — 原始日志节选，笔记本风格 */
+  .log-exhibit {
+    margin: 56px 0 80px;
+    padding: 32px 36px 28px;
+    background: #FDFAF0;
+    border: 1px solid var(--rule);
+    position: relative;
+    box-shadow: 0 1px 0 #fff inset, 0 4px 18px rgba(26,20,16,0.06);
+  }
+  .log-exhibit::before {
+    content: "";
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: linear-gradient(180deg, var(--accent) 0%, var(--accent-soft) 100%);
+  }
+  .log-exhibit::after {
+    content: "";
+    position: absolute;
+    left: 60px; right: 20px;
+    top: 80px; bottom: 20px;
+    background-image: repeating-linear-gradient(
+      transparent, transparent 31px,
+      rgba(155, 45, 32, 0.055) 31px, rgba(155, 45, 32, 0.055) 32px
+    );
+    pointer-events: none;
+    z-index: 0;
+  }
+  .log-exhibit > * { position: relative; z-index: 1; }
+
+  .log-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    border-bottom: 1px solid var(--rule);
+    padding-bottom: 12px;
+    margin-bottom: 22px;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .log-head .log-title {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.3em;
+    color: var(--accent);
+    text-transform: uppercase;
+    font-weight: 700;
+  }
+  .log-head .log-source {
+    font-size: 12px;
+    color: var(--ink-mute);
+    font-style: italic;
+    font-family: var(--mono);
+    letter-spacing: 0.05em;
+  }
+  .log-entry { margin-bottom: 22px; }
+  .log-entry:last-of-type { margin-bottom: 0; }
+  .log-day {
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--ink);
+    margin-bottom: 6px;
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+  .log-day .log-date {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--ink-mute);
+    font-weight: 400;
+    letter-spacing: 0.1em;
+  }
+  .log-body {
+    font-size: 15px;
+    line-height: 1.8;
+    color: var(--ink-soft);
+    margin: 0;
+  }
+  .log-body strong {
+    color: var(--accent);
+    font-weight: 600;
+  }
+  .log-ellipsis {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.4em;
+    color: var(--ink-mute);
+    text-align: center;
+    margin: 12px 0 4px;
+  }
+  .log-foot {
+    margin-top: 20px;
+    padding-top: 12px;
+    border-top: 1px dashed var(--rule);
+    font-size: 12px;
+    color: var(--ink-mute);
+    font-style: italic;
+    text-align: right;
+  }
+
+  /* GAME PLATE — 游戏截图做旧纸卡 */
+  .game-plate {
+    margin: 40px 0 52px;
+    padding: 18px 18px 16px;
+    background: #EDE4CF;
+    border: 1px solid var(--rule);
+    box-shadow: 0 1px 0 #fff inset, 0 3px 14px rgba(26,20,16,0.07);
+    position: relative;
+  }
+  .game-plate::before {
+    content: "";
+    position: absolute;
+    inset: 7px;
+    border: 1px solid var(--accent-soft);
+    opacity: 0.35;
+    pointer-events: none;
+  }
+  .game-plate .plate-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .game-plate img {
+    width: 100%;
+    display: block;
+    border: 1px solid rgba(26,20,16,0.15);
+    filter: saturate(0.92) contrast(0.96);
+    background: #000;
+    cursor: zoom-in;
+    transition: filter 0.2s ease;
+  }
+  .game-plate img:hover {
+    filter: saturate(1) contrast(1);
+  }
+
+  /* LIGHTBOX — 图片点击放大 */
+  .lightbox {
+    position: fixed;
+    inset: 0;
+    background: rgba(10, 8, 6, 0.94);
+    z-index: 9999;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 32px;
+    cursor: zoom-out;
+    animation: lb-fade 0.2s ease;
+  }
+  .lightbox.active { display: flex; }
+  .lightbox img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.7);
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+  .lightbox .lb-close {
+    position: absolute;
+    top: 20px;
+    right: 24px;
+    color: rgba(255,255,255,0.8);
+    font-family: var(--mono);
+    font-size: 13px;
+    letter-spacing: 0.2em;
+    background: none;
+    border: 1px solid rgba(255,255,255,0.2);
+    padding: 6px 14px;
+    cursor: pointer;
+  }
+  .lightbox .lb-close:hover { background: rgba(255,255,255,0.1); }
+  @keyframes lb-fade {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  .game-plate .plate-caption {
+    margin-top: 14px;
+    padding-top: 12px;
+    border-top: 1px dashed var(--rule);
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .game-plate .plate-label {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.25em;
+    color: var(--accent);
+    text-transform: uppercase;
+    white-space: nowrap;
+    font-weight: 600;
+  }
+  .game-plate .plate-text {
+    font-size: 14px;
+    color: var(--ink-soft);
+    font-style: italic;
+    line-height: 1.55;
+    flex: 1;
+    text-align: right;
+  }
+
+  /* PLAY CTA — 体验链接，朱砂印章风格 */
+  .play-cta {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    margin: 28px 0 52px;
+    padding: 18px 24px;
+    background: #FDFAF0;
+    border: 1px solid var(--accent-soft);
+    border-left: 3px solid var(--accent);
+    text-decoration: none;
+    color: var(--ink);
+    transition: background 0.2s ease, transform 0.2s ease;
+    position: relative;
+  }
+  .play-cta:hover {
+    background: #F7EFD8;
+    transform: translateX(2px);
+  }
+  .play-cta-seal {
+    font-family: var(--serif-cn, serif);
+    font-size: 14px;
+    letter-spacing: 0.3em;
+    color: #fff;
+    background: var(--accent);
+    padding: 6px 12px;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+  .play-cta-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .play-cta-title {
+    font-size: 15px;
+    color: var(--ink);
+    font-weight: 600;
+  }
+  .play-cta-url {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--ink-mute);
+    letter-spacing: 0.05em;
+  }
+  .play-cta-arrow {
+    font-size: 20px;
+    color: var(--accent);
+    font-weight: 300;
+  }
+
+  /* SEAL DIVIDER — 章节之间的朱砂印章 */
+  .seal-divider {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 24px;
+    margin: 88px 0 56px;
+  }
+  .seal-divider::before,
+  .seal-divider::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--rule) 20%, var(--rule) 80%, transparent);
+    max-width: 180px;
+  }
+  .seal-divider .seal {
+    width: 38px;
+    height: 38px;
+    background: var(--accent);
+    color: #F5F0E5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--serif);
+    font-weight: 700;
+    font-size: 18px;
+    border-radius: 3px;
+    transform: rotate(-4deg);
+    box-shadow: 0 2px 6px rgba(155,45,32,0.25);
+    position: relative;
+  }
+  .seal-divider .seal::after {
+    content: "";
+    position: absolute;
+    inset: 3px;
+    border: 1px solid rgba(245,240,229,0.35);
+    border-radius: 2px;
+    pointer-events: none;
+  }
+
+  /* LEAD drop cap */
+  .lead::first-letter {
+    font-size: 1.4em;
+    font-weight: 600;
+    color: var(--accent);
+  }
+
+  /* SECTIONS */
+  section.day {
+    margin: 96px 0;
+    scroll-margin-top: 100px;
+  }
+
+  section.day:first-of-type {
+    margin-top: 0;
+  }
+
+  .day-header {
+    display: flex;
+    align-items: baseline;
+    gap: 24px;
+    margin-bottom: 32px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .day-number {
+    font-family: var(--mono);
+    font-size: 13px;
+    letter-spacing: 0.25em;
+    color: var(--accent);
+    font-weight: 600;
+    white-space: nowrap;
+    text-transform: uppercase;
+  }
+
+  .day-title {
+    font-size: 32px;
+    line-height: 1.3;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    margin: 0;
+    color: var(--ink);
+  }
+
+  .day-lede {
+    font-size: 19px;
+    line-height: 1.7;
+    color: var(--ink-soft);
+    font-style: italic;
+    margin: 0 0 36px;
+    padding: 20px 24px;
+    background: var(--bg-quote);
+    border-radius: 2px;
+    position: relative;
+  }
+
+  .day-lede::before {
+    content: "❝";
+    position: absolute;
+    top: -8px;
+    left: 12px;
+    font-size: 48px;
+    color: var(--accent-soft);
+    font-family: serif;
+    line-height: 1;
+  }
+
+  article p {
+    margin: 0 0 24px;
+  }
+
+  article h3 {
+    font-size: 24px;
+    line-height: 1.4;
+    font-weight: 600;
+    margin: 56px 0 20px;
+    color: var(--ink);
+    letter-spacing: -0.005em;
+  }
+
+  article h3.mini {
+    font-size: 15px;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: var(--accent);
+    font-weight: 600;
+    margin: 48px 0 16px;
+  }
+
+  article strong {
+    font-weight: 700;
+    color: var(--ink);
+  }
+
+  article em.num {
+    font-family: var(--mono);
+    font-style: normal;
+    font-weight: 500;
+    color: var(--accent);
+    background: rgba(155, 45, 32, 0.08);
+    padding: 1px 6px;
+    border-radius: 3px;
+    font-size: 0.9em;
+  }
+
+  article code {
+    font-family: var(--mono);
+    font-size: 0.88em;
+    background: var(--bg-code);
+    padding: 2px 6px;
+    border-radius: 3px;
+    color: var(--ink);
+  }
+
+  pre {
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 1.7;
+    background: var(--bg-code);
+    padding: 20px 24px;
+    border-radius: 4px;
+    overflow-x: auto;
+    margin: 28px 0;
+    color: var(--ink);
+    border-left: 3px solid var(--accent-soft);
+  }
+
+  pre .com { color: var(--ink-mute); }
+  pre .hl  { color: var(--accent); font-weight: 600; }
+
+  article blockquote {
+    margin: 36px 0;
+    padding: 0 0 0 24px;
+    border-left: 3px solid var(--accent);
+    font-style: italic;
+    font-size: 20px;
+    line-height: 1.7;
+    color: var(--ink);
+  }
+
+  article blockquote strong {
+    font-style: normal;
+    display: block;
+    margin-bottom: 8px;
+    color: var(--accent);
+    font-size: 0.75em;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+  }
+
+  /* STATS CARDS */
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin: 32px 0;
+  }
+
+  .stat {
+    background: var(--bg-quote);
+    padding: 20px 18px;
+    border-radius: 4px;
+    border-top: 2px solid var(--accent);
+  }
+
+  .stat .num {
+    font-family: var(--mono);
+    font-size: 28px;
+    font-weight: 600;
+    color: var(--accent);
+    display: block;
+    line-height: 1;
+    margin-bottom: 6px;
+    letter-spacing: -0.02em;
+  }
+
+  .stat .label {
+    font-size: 12px;
+    color: var(--ink-soft);
+    letter-spacing: 0.05em;
+  }
+
+  .stat .judge {
+    font-family: var(--mono);
+    font-size: 10px;
+    margin-top: 8px;
+    color: var(--ink-mute);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  /* CURVE */
+  .curve {
+    background: var(--ink);
+    color: var(--bg);
+    padding: 32px 28px;
+    margin: 36px 0;
+    border-radius: 4px;
+  }
+
+  .curve-title {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--accent-soft);
+    margin-bottom: 24px;
+  }
+
+  .curve-row {
+    display: grid;
+    grid-template-columns: 100px 140px 1fr;
+    gap: 16px;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    font-size: 14px;
+  }
+
+  .curve-row:last-child { border-bottom: none; }
+
+  .curve-row .stage {
+    font-family: var(--mono);
+    color: var(--accent-soft);
+    font-size: 12px;
+    letter-spacing: 0.1em;
+  }
+
+  .curve-row .level {
+    font-weight: 600;
+    color: var(--bg);
+  }
+
+  .curve-row .desc {
+    color: rgba(245, 240, 229, 0.7);
+    font-size: 14px;
+    font-style: italic;
+  }
+
+  /* PRINCIPLE BOX */
+  .principle {
+    margin: 40px 0;
+    padding: 28px 32px;
+    background: var(--bg-quote);
+    border-radius: 4px;
+    position: relative;
+  }
+
+  .principle-tag {
+    position: absolute;
+    top: -10px;
+    left: 24px;
+    background: var(--accent);
+    color: var(--bg);
+    font-family: var(--mono);
+    font-size: 10px;
+    padding: 4px 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    border-radius: 2px;
+  }
+
+  .principle p {
+    margin: 0;
+    font-size: 19px;
+    line-height: 1.7;
+    color: var(--ink);
+  }
+
+  .principle p + p { margin-top: 14px; }
+
+  /* ECHO (后来复用在...) */
+  .echo {
+    margin: 40px 0;
+    padding-top: 24px;
+    border-top: 2px dotted var(--rule);
+  }
+
+  .echo-label {
+    font-family: var(--mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.25em;
+    color: var(--accent);
+    font-weight: 600;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .echo-label::before {
+    content: "";
+    display: inline-block;
+    width: 20px;
+    height: 1px;
+    background: var(--accent);
+  }
+
+  .echo ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .echo li {
+    padding: 16px 0;
+    border-bottom: 1px solid var(--rule);
+    font-size: 16px;
+    line-height: 1.7;
+    color: var(--ink-soft);
+  }
+
+  .echo li:last-child { border-bottom: none; }
+
+  .echo li strong {
+    color: var(--ink);
+    display: block;
+    margin-bottom: 4px;
+    font-weight: 600;
+  }
+
+  /* EPILOGUE */
+  section.epilogue {
+    margin-top: 120px;
+    padding-top: 80px;
+    border-top: 3px double var(--rule);
+  }
+
+  section.epilogue .day-title {
+    font-size: 40px;
+  }
+
+  .takeaway {
+    margin: 48px 0;
+    padding: 40px 32px;
+    background: var(--ink);
+    color: var(--bg);
+    border-radius: 4px;
+  }
+
+  .takeaway-label {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--accent-soft);
+    margin-bottom: 24px;
+  }
+
+  .takeaway ol {
+    margin: 0;
+    padding-left: 24px;
+    color: var(--bg);
+  }
+
+  .takeaway li {
+    padding: 10px 0;
+    font-size: 17px;
+    line-height: 1.7;
+  }
+
+  .takeaway li strong {
+    color: var(--accent-soft);
+    font-weight: 600;
+  }
+
+  .signoff {
+    margin-top: 80px;
+    text-align: center;
+    font-size: 22px;
+    font-style: italic;
+    line-height: 1.6;
+    color: var(--accent);
+    padding: 40px 0;
+  }
+
+  .footer-meta {
+    margin-top: 80px;
+    padding-top: 32px;
+    border-top: 1px solid var(--rule);
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    color: var(--ink-mute);
+    text-transform: uppercase;
+    text-align: center;
+    line-height: 1.8;
+  }
+
+  .footer-meta .accent {
+    color: var(--accent);
+  }
+
+  /* Responsive */
+  @media (max-width: 1180px) {
+    main {
+      grid-template-columns: 1fr min(840px, calc(100vw - 64px)) 0;
+    }
+    aside.toc { display: none; }
+  }
+
+  @media (max-width: 720px) {
+    body { font-size: 16px; }
+    main { padding: 0 20px; }
+    article { padding: 48px 0 80px; }
+    .hero h1 { font-size: 36px; }
+    .hero .subtitle { font-size: 17px; }
+    .day-title { font-size: 24px; }
+    .day-header { flex-direction: column; gap: 8px; }
+    .stats { grid-template-columns: 1fr; }
+    .curve-row { grid-template-columns: 1fr; gap: 4px; padding: 14px 0; }
+    .lead, article blockquote { font-size: 18px; }
+    section.epilogue .day-title { font-size: 28px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="grain"></div>
+
+<nav class="top">
+  <div class="brand">产品随笔 <span>·</span> PRODUCT NOTES</div>
+  <div class="progress" id="progress">00%</div>
+</nav>
+
+<main>
+  <article>
+
+    <!-- HERO -->
+    <header class="hero">
+      <div class="meta">
+        <span>2026.04.26</span>
+        <span>产品随笔</span>
+        <span>约 20 分钟</span>
+      </div>
+      <h1>一个三国游戏<br>让我重写了自己的工作方式</h1>
+      <p class="subtitle">两周，一个下班项目，把我从"和 AI 共事的第一天"推到了第四级杠杆。<br>这是给同行产品经理的一份田野笔记。</p>
+      <div class="byline">
+        <img class="avatar" src="avatar.jpg" alt="bodoshi" />
+        <div>
+          <div class="author">bodoshi</div>
+          <div style="font-size:12px; color:var(--ink-mute); margin-top:2px;">写于深夜的 Obsidian，周末的 Claude Code 对话框</div>
+        </div>
+      </div>
+    </header>
+
+    <!-- LEAD -->
+    <p class="lead">
+      如果你手边也有一个"下班后的小项目"，千万别浪费它。<br>它可能是你这一年认知升级最好的训练场。
+    </p>
+
+    <a class="play-cta" href="https://three-kingdoms-beta.vercel.app/" target="_blank" rel="noopener">
+      <span class="play-cta-seal">体验</span>
+      <span class="play-cta-body">
+        <span class="play-cta-title">先玩一局再读？</span>
+        <span class="play-cta-url">three-kingdoms-beta.vercel.app</span>
+      </span>
+      <span class="play-cta-arrow">→</span>
+    </a>
+
+    <!-- DAY 1-3 -->
+    <section class="day" id="day1">
+      <div class="day-header">
+        <div class="day-number">Day 01 — 03</div>
+        <h2 class="day-title">代码工人期<br>——我以为 AI 是个更快的实习生</h2>
+      </div>
+
+      <div class="day-lede">
+        周五下班，我打开对话框：<em>"帮我做个三国武将对战小游戏，能看动画的那种。"</em> 周六下午，我有了 <em class="num">10300</em> 行 HTML。卡牌能翻转，战斗有动画，三种阵型可选，连 BGM 都配好了。
+      </div>
+
+      <p>我那两天的心情可以用四个字总结：<strong>AI 时代的产品经理</strong>。</p>
+
+      <p>我把它发给朋友，自己跑去吃火锅。回来路上脑子里已经在构思"怎么包装一下发小红书"。</p>
+
+      <p>然后周日，朋友到我家，我兴致勃勃地打开游戏让他试玩。他玩了大概二十分钟，抬头看我：</p>
+
+      <blockquote>
+        <strong>朋友</strong>
+        好玩。但是——猛将流是不是有点太强了？而且曹操怎么感觉放哪都强？
+      </blockquote>
+
+      <figure class="game-plate">
+        <div class="plate-grid">
+          <img src="game-early-2.jpg" alt="第一版对战界面">
+          <img src="game-early-1.jpg" alt="第一版主界面">
+        </div>
+        <figcaption class="plate-caption">
+          <span class="plate-label">Day 02 · 现场物证</span>
+          <span class="plate-text">第一版——看起来什么都对，其实每一格都藏着问题。当时的我还没意识到：这正是 AI 帮我掩盖掉的东西。</span>
+        </figcaption>
+      </figure>
+
+      <p>我当时没当回事。<strong>这不就是数值调一下的事吗。</strong></p>
+
+      <p>但那天晚上我在洗碗的时候，突然意识到一件不对劲的事：<strong>朋友指出的两个问题，AI 在写代码的时候从头到尾都没有提过。</strong></p>
+
+      <p>它只是按我说的"做一个三国游戏"，把 160 个武将、10 个阵位、143 对克制关系、若干宝物和技能，全部如实地填进了代码。至于"<em class="num">周瑜</em>会不会在 4 个位置都是 TOP3"、"<em class="num">曹操</em>会不会因为五维总和高所以放哪都强"——这些问题它没有提，<em>因为我没问</em>。</p>
+
+      <h3 class="mini">沉淀物 · 01</h3>
+
+      <div class="principle">
+        <div class="principle-tag">Day 1-3 · 教训</div>
+        <p>不要只评估 AI 给出的东西。要主动问它没告诉你什么。</p>
+        <p style="color:var(--ink-soft); font-size:16px;">AI 不像实习生那样有"常识判断"。它不会在数值失衡的时候皱眉说"这不对吧？"。它只会如实地按你的描述把每一格填满。<strong>你是产品经理，不是验收员——边界条件的发问义务在你身上。</strong></p>
+      </div>
+
+      <div class="echo">
+        <div class="echo-label">后来这条原则在我其他项目里的回响</div>
+        <ul>
+          <li>
+            <strong>做 stock-analyst-pro 的时候</strong>
+            AI 给我写了一个看起来很合理的 DCF 估值模块，代码跑起来了，公式也对。我的第一反应不再是"太棒了"——是"<em>这个模型在历史数据上会出什么错？</em>" 我拉了 <em class="num">10</em> 个已经涨上去的股票回测，有 <em class="num">6</em> 个估出来的"内在价值"比当时股价还低。模型是坏的，它只是看起来对。
+          </li>
+        </ul>
+      </div>
+
+      <p style="color: var(--ink-mute); font-size: 15px; margin-top: 40px; font-style: italic;">
+        这是我和 AI 共事的第一个教训。但我当时还没意识到——<strong style="color: var(--ink-soft);">真正的失控，要等到第四天才开始。</strong>
+      </p>
+    </section>
+
+
+    <!-- DAY 4-10 -->
+    <div class="seal-divider" aria-hidden="true"><span class="seal">貳</span></div>
+
+    <section class="day" id="day4">
+      <div class="day-header">
+        <div class="day-number">Day 04 — 10</div>
+        <h2 class="day-title">失控期<br>——我发现自己在做一个<br>我看不懂的系统</h2>
+      </div>
+
+      <div class="day-lede">
+        这一周我没写一行新功能。我只干了一件事：<strong>说服自己"调数值"不是一个人能干的活。</strong>
+      </div>
+
+      <p>周一晚上，朋友试玩完丢了一句话给我："曹操怎么感觉放哪都强？"</p>
+
+      <p>我的反应特别 PM——<strong>打开表格，锁定问题，一个个调</strong>。曹操在统帅位强是因为五维总和高，那给他加个"间谍位"的负向惩罚（penalty）不就好了？</p>
+
+      <p>改完，跑两盘。嗯，曹操老实了。</p>
+
+      <p>周三凌晨我收到消息："周瑜现在是不是有点离谱？"</p>
+
+      <p>我一查 posScore 矩阵——<strong>周瑜在 4 个位置都是 TOP3</strong>。我压根没动过他，但曹操被压下去之后，整个位置竞争格局就偏了。</p>
+
+      <p>然后是周四的关羽、周五的貂蝉……等我意识到的时候，我已经在<strong>同一份 Excel 里来回修改同一批人了</strong>。每改一处，别的地方塌一处。</p>
+
+      <blockquote>
+        那是一个经典的 PM 幻觉：你以为自己在"调参数"，其实你在搅动一个你没建模的系统。
+      </blockquote>
+
+      <h3>那天我停下来，干了一件"不像做游戏"的事</h3>
+
+      <p>我没再改数值。我去写了一个叫 <code>simulate_battles.js</code> 的脚本。</p>
+
+      <p>逻辑很简单：从 <em class="num">160</em> 个武将里分层抽样 <em class="num">30</em> 人（每势力至少 6 人），模拟 PVP 的 Ban/Pick 流程（Pick4/Ban2 交替 28 手），用匈牙利算法自动布阵到 10 个阵位，跑 7 回合战斗，<strong>共 <em class="num">500</em> 局</strong>。输出：势力胜率、先手偏差、拉锯/碾压比例、每个阵位的 TOP3 / BOTTOM3。</p>
+
+      <p>第一次跑完，我盯着终端看了十分钟——</p>
+
+      <figure class="game-plate">
+        <div class="plate-grid">
+          <img src="sim-terminal.jpg" alt="500 局理性人模拟输出">
+        </div>
+        <figcaption class="plate-caption">
+          <span class="plate-label">Day 07 · 现场物证</span>
+          <span class="plate-text"><code>node sim.js</code>——500 局理性人对战、分层抽样、智能选将、最优布阵。<strong>P1 胜率 52%、各回合 47-52%、克制触发 44%、技能主导 38%、方差主导 47%</strong>。六行数字下来，"靠感觉调数值"这个想法彻底说服不了我。</span>
+        </figcaption>
+      </figure>
+
+      <div class="stats">
+        <div class="stat">
+          <span class="num">76.2%</span>
+          <div class="label">曹操作为主公的胜率</div>
+          <div class="judge">❌ 我以为加了 penalty 就解决了</div>
+        </div>
+        <div class="stat">
+          <span class="num">36.7%</span>
+          <div class="label">群势力总胜率</div>
+          <div class="judge">❌ 我以为"群雄"是个势均力敌的词</div>
+        </div>
+        <div class="stat">
+          <span class="num">#13</span>
+          <div class="label">貂蝉的最佳位置排名</div>
+          <div class="judge">❌ 她可是史实里的 S 级间谍</div>
+        </div>
+      </div>
+
+      <p>这三行数字让我彻底放弃了"靠感觉改数值"这件事。</p>
+
+      <h3 class="mini">沉淀物 · 02 · 三步法</h3>
+
+      <p>不是一个脚本，是一套<strong>动作序列</strong>，后来我给它写进了 memory 和 Skill：</p>
+
+<pre><span class="com"># 凡是有反馈链的产品改动，必须跑完这三步</span>
+
+<span class="hl">第一步</span>  500 局 PVP 模拟   → 拿胜率分布
+<span class="hl">第二步</span>  posScore 矩阵    → 拿位置霸榜清单
+<span class="hl">第三步</span>  TOP30 史实审查   → 拿"哪里违背了玩家认知"
+
+<span class="com"># 每改一处，必须全跑一遍。没有例外。</span></pre>
+
+      <div class="principle">
+        <div class="principle-tag">Day 4-10 · 原则</div>
+        <p>凡是有"反馈链"的产品，都需要一个本地模拟器。</p>
+        <p style="color:var(--ink-soft); font-size:16px;"><strong>反馈链的意思是：</strong>你的动作 → 用户的反应 → 系统状态变化 → 影响下一个用户的体验。游戏有。增长漏斗有。定价策略有。推荐系统有。<strong>CRM 里的审批流也有。</strong><strong>本地模拟器的意思也很朴素：</strong>一个跑在自己电脑上的脚本，把产品的反馈链简化后自己推演一遍（我这里就是 <code>sim.js</code>，500 局自动对战）。没有它，你就只能"改了发出去等用户骂"；有了它，你能在自己电脑上骂自己 500 遍。</p>
+      </div>
+
+      <div class="echo">
+        <div class="echo-label">后来这条原则在我其他项目里的回响</div>
+        <ul>
+          <li>
+            <strong>做 stock-analyst-pro 的时候</strong>
+            我不再让 AI "一次给我答案"。我要求它先把估值结果写成回测脚本，跑过去 <em class="num">5</em> 年的数据，看历史准确度是不是比随机基准好。答案必须是分布，不是点估计。
+          </li>
+          <li>
+            <strong>做 CRM PRD 评审的时候</strong>
+            我开始逼自己列"这个功能上线后，哪些存量用户的状态会变"。不是测试用例，是<strong>反馈链推演</strong>。这后来变成了《PRD 需求细节规范化》Skill 的底层结构。
+          </li>
+        </ul>
+      </div>
+
+      <p style="color: var(--ink-mute); font-size: 15px; margin-top: 40px; font-style: italic;">
+        那一周我没写一行游戏代码，但我给自己装了一副以后看所有产品都会用到的眼镜。<strong style="color: var(--ink-soft);">但眼镜还不够——我很快发现，AI 每次对话都会忘记我教过它的东西。</strong>
+      </p>
+    </section>
+
+
+    <!-- DAY 11-20 -->
+    <div class="seal-divider" aria-hidden="true"><span class="seal">參</span></div>
+
+    <section class="day" id="day11">
+      <div class="day-header">
+        <div class="day-number">Day 11 — 20</div>
+        <h2 class="day-title">沉淀期<br>——我发现 AI 会忘，<br>但我不能</h2>
+      </div>
+
+      <div class="day-lede">
+        这一周的关键词是挫败。我问了 AI <em>三次</em>同一个问题，它三次给了我三个不同的答案——没有哪个是对的。
+      </div>
+
+      <p>那是一个周二晚上，我在给游戏加"锦标赛"模式。我熟练地打开对话框："帮我在锦标赛模式里也支持阵型选择。"</p>
+
+      <p>AI 给了我一段代码，跑了。第二天我又加了"战役模式"，AI 又给了一段代码，也跑了。</p>
+
+      <p><strong>然后有玩家告诉我：战役模式里，AI 对手不会选阵型。</strong></p>
+
+      <p>我一查——阵型数据只在 <code>startGame()</code>（快速对战入口）里被初始化。锦标赛、战役、PVP 三个模式的入口，<strong>三次都被漏了</strong>。</p>
+
+      <p>更气人的是，这已经是我<strong>第三次</strong>踩这个坑了。第一次是计策，第二次是宝物，这次是阵型。每次都是"我以为加了"，每次 AI 都"看起来加了"。</p>
+
+      <p>我对 AI 发火没用——它根本记不住上次的对话。</p>
+
+      <blockquote>
+        那天我才意识到一件事：AI 没有记忆，但我会反复走进同一个房间。
+      </blockquote>
+
+      <h3>我停下来，没改代码，写了一份"给未来自己的备忘录"</h3>
+
+      <p>文件名：<code>feedback_multimode_check.md</code>。内容三行：</p>
+
+<pre>每次新增影响战斗的功能，必须检查 <span class="hl">4</span> 个模式入口都接入了：
+  startGame()  /  initTournament()
+  startCampaignStage()  /  pvpAfterFormation()
+
+<span class="com"># Why:  v1.6 阵型系统漏了 3 个模式，AI 不选阵型，玩家选择丢失</span>
+<span class="com"># How:  每次新增 G.xxx 全局变量，grep 确认 4 个入口都有赋值</span></pre>
+
+      <p>然后我塞进了 <code>~/.claude/memory/</code>。<strong>下次任何关于三国游戏的对话，AI 都会先读到这份备忘录。</strong></p>
+
+      <p>这一刻我脑子里"咔"地响了一下。</p>
+
+      <p>我之前一直以为"提示词工程"是在研究怎么把一句话写得更精准。那天我才明白——<strong>真正的杠杆不在那一句话里，而在 AI 每次对话开始前，它读到了什么。</strong></p>
+
+      <h3>那一周我做的事，一件跟代码都没关系</h3>
+
+      <ul style="margin: 24px 0; padding-left: 24px; color: var(--ink-soft);">
+        <li style="margin-bottom: 10px;">建了 <code>three-kingdoms-principles.md</code>：<strong>11 条设计原则</strong>（叙事沉浸 &gt; 数值深度、隐藏数值展示体验、每个角色都有自己的春天……）</li>
+        <li style="margin-bottom: 10px;">建了 <code>three-kingdoms-balance.md</code>：平衡性三步法 + 目标区间表</li>
+        <li style="margin-bottom: 10px;">建了 <code>feedback_multimode_check.md</code>、<code>feedback_balance_audit.md</code>、<code>feedback_changelog_update.md</code></li>
+        <li>建了一条规矩：每次对话结束，AI 必须把这次的改动追加到 Obsidian 里的开发日记，一行不少</li>
+      </ul>
+
+      <p>我把这堆东西叫<strong>"外挂大脑"</strong>。</p>
+
+      <figure class="game-plate">
+        <div class="plate-grid">
+          <img src="brain-obsidian.png" alt="外挂大脑 · Obsidian 开发日记">
+        </div>
+        <figcaption class="plate-caption">
+          <span class="plate-label">Day 14 · 外挂大脑</span>
+          <span class="plate-text">这是 Obsidian 里的开发日记——<strong>每次对话结束，AI 自动追加一段</strong>，从 Day 1 的"想法很简单"到 Day 5 的"支配策略"一字不差。我已经不记得 Day 4 发生了什么，但<strong>它记得</strong>。下次对话开始，它先读这份，再回答我。</span>
+        </figcaption>
+      </figure>
+
+      <h3>一个周五深夜的画面</h3>
+
+      <p>我在重启一个新对话，问 AI："你能帮我看看现在势力平衡性怎么样吗？"</p>
+
+      <p>它沉默了两秒，然后回我：</p>
+
+      <blockquote style="background: var(--bg-quote); border-left-color: var(--accent-soft); padding: 20px 24px; font-style: normal; font-size: 17px;">
+        根据 <code>three-kingdoms-balance.md</code>，我应该先跑 <code>simulate_battles.js</code> 500 局，检查势力胜率是否在 <em class="num">40% — 55%</em> 区间。开始了。
+      </blockquote>
+
+      <p><strong>我一个字都没教它。</strong></p>
+
+      <p>那一刻我意识到，我不是在教 AI 做这个游戏。<strong>我是在把"如何做这个游戏"这件事本身变成一个可复用的东西。</strong></p>
+
+      <h3>另一件我从此再也没停过的事：让 AI 代入视角帮我找茬</h3>
+
+      <p>memory 是让 AI "记得我做过什么"。但我很快发现还有另一个动作，杠杆更大——<strong>让它代入一个具体视角，主动来挑我的毛病</strong>。</p>
+
+      <p>比如我会跟它说："你现在是一个第一次打开游戏的新玩家，把你 30 分钟里觉得困惑、别扭、没必要的地方都列出来。"或者："你是一个锦标赛老玩家，你最讨厌这个版本的哪三件事？"</p>
+
+      <p>它不会像我自己那样自我辩护。它会真的把问题列出来，还按优先级排好。</p>
+
+      <figure class="game-plate">
+        <div class="plate-grid">
+          <img src="bug-priority.png" alt="AI 代入玩家视角生成的 bug 优先级表">
+        </div>
+        <figcaption class="plate-caption">
+          <span class="plate-label">Day 18 · 现场物证</span>
+          <span class="plate-text">一次"代入玩家视角找茬"跑出来的结果：<strong>16 条问题，P0/P1/P2 分级，每条都标了影响范围和修复耗时</strong>。锦标赛进度持久化、死成就、splice 边界 bug、宝物保底机制……有些我自己从来没意识到。</span>
+        </figcaption>
+      </figure>
+
+      <p>这个流程对我来说已经变成肌肉记忆了。任何一个项目我都会定期跑一次："你是 [某类用户]，找茬。"然后按它给的清单动手。</p>
+
+      <p><strong>AI 不是只能当个会写代码的工具人。它是一组可以随时切换的视角——只要你会让它切。</strong></p>
+
+      <div class="principle">
+        <div class="principle-tag">Day 11-20 · 原则</div>
+        <p>AI 时代 PM 的护城河 = 把自己的判断力结构化地存下来。</p>
+        <p style="color:var(--ink-soft); font-size:16px;">不是存在脑子里（会累、会忘、会被新项目覆盖）。不是存在文档里（不会在下次对话时自动出现在 AI 面前）。<strong>存在一个 AI 每次都会读到的地方</strong>，并且结构化（有 Why 和 How to apply，不是一堆散文）。这就是为什么我现在 <code>memory/</code> 下有 <em class="num">56</em> 个文件——它们不是笔记，它们是我的外部器官。</p>
+      </div>
+
+      <div class="echo">
+        <div class="echo-label">后来这条原则在我其他项目里的回响</div>
+        <ul>
+          <li>
+            <strong>做 stock-analyst-pro</strong>
+            踩了三次 yfinance 数据的坑之后，我写了 <code>feedback_stock_data_gotchas.md</code>。现在每次让 AI 动估值代码前，它会先读这份清单。
+          </li>
+          <li>
+            <strong>做 CRM PRD 评审</strong>
+            我把"PRD 必须覆盖哪些细节"写成了 <code>project_prd_detail_standards.md</code>。现在新 PRD 上传，AI <em class="num">10</em> 秒内给我一份缺漏清单。
+          </li>
+          <li>
+            <strong>用户画像</strong>
+            <code>user_team_role.md</code>、<code>user_finance_learner.md</code>——告诉 AI "我是谁、我懂什么、我在学什么"。它不会再给我讲基础概念，也不会假设我懂某个我其实不懂的术语。
+          </li>
+        </ul>
+      </div>
+
+      <p style="color: var(--ink-mute); font-size: 15px; margin-top: 40px; font-style: italic;">
+        这一周我没写新功能，但我给自己和 AI 之间搭了一座桥。从此我们不是每次从零开始。<strong style="color: var(--ink-soft);">但这还不是终点——第二周的某一天，我干了一件让自己震惊的事。</strong>
+      </p>
+    </section>
+
+
+    <!-- DAY 21+ -->
+    <div class="seal-divider" aria-hidden="true"><span class="seal">肆</span></div>
+
+    <section class="day" id="day21">
+      <div class="day-header">
+        <div class="day-number">Day 21 +</div>
+        <h2 class="day-title">杠杆期<br>——我把自己复制了出去</h2>
+      </div>
+
+      <div class="day-lede">
+        这一段的关键词是：<strong>我不再做这个游戏了。我在做"一套能处理这类问题的能力"。</strong>
+      </div>
+
+      <p>大约第 12 天的时候，游戏基本稳定了。朋友们玩得起劲，平衡性也调到了目标区间。按理说这是一个自然的终点。</p>
+
+      <p>但那天我干了件奇怪的事：<strong>我给"平衡性审计"这个动作，写了一个按钮。</strong></p>
+
+      <p>准确地说，是一个 <strong>Skill</strong>——Claude 的一种可调用的能力包。触发词是"审计平衡性"。每次我说这四个字，它就会自动：</p>
+
+      <ol style="margin: 24px 0; padding-left: 24px; color: var(--ink-soft); line-height: 1.9;">
+        <li>启动一个 Explore Agent 读取游戏代码里的数据（160 个角色、20 件宝物、143 对克制关系、10 个阵位权重）</li>
+        <li>跑 <strong>6 项量化计算</strong>：战力排名 Top20、宝物专属分布、阵营均衡、翻盘概率、随机 Ban 影响、宝物影响度</li>
+        <li>输出一个带 <strong style="color: var(--accent);">Pass / Warning / Fail</strong> 的判定表，Fail 项附具体修改建议（改哪个角色的哪个值）</li>
+      </ol>
+
+      <p>从那天起，<strong>我再也没"感觉过"平衡性了</strong>。我说"审计平衡性"，它给我一张表。</p>
+
+      <h3>我当时没意识到，但这是我做过最重要的一件事</h3>
+
+      <p>之前我一直以为自己在"做游戏"。</p>
+
+      <p>写了这个 Skill 之后，我突然看清楚一条曲线：</p>
+
+      <div class="curve">
+        <div class="curve-title">PM 的 AI 杠杆曲线</div>
+        <div class="curve-row">
+          <span class="stage">DAY 01-03</span>
+          <span class="level">一次性解决</span>
+          <span class="desc">"我改个数值"</span>
+        </div>
+        <div class="curve-row">
+          <span class="stage">DAY 04-10</span>
+          <span class="level">流程化</span>
+          <span class="desc">"我写了个脚本，每次改都跑一遍"</span>
+        </div>
+        <div class="curve-row">
+          <span class="stage">DAY 11-20</span>
+          <span class="level">知识化</span>
+          <span class="desc">"我写了份 memory，AI 每次都会读"</span>
+        </div>
+        <div class="curve-row">
+          <span class="stage">DAY 21 +</span>
+          <span class="level">产品化（Skill）</span>
+          <span class="desc">"我说四个字，它自动跑全流程"</span>
+        </div>
+      </div>
+
+      <p>每一级都比上一级杠杆高<strong>一个数量级</strong>：</p>
+
+      <ul style="margin: 24px 0; padding-left: 24px; color: var(--ink-soft);">
+        <li><strong>第 1 级：</strong>你做一次</li>
+        <li><strong>第 2 级：</strong>你做 100 次但省了手动（脚本化）</li>
+        <li><strong>第 3 级：</strong>AI 替你做 100 次，但每次你要引导（知识化）</li>
+        <li><strong>第 4 级：</strong>AI 识别出情境自动做 100 次（产品化）</li>
+      </ul>
+
+      <p>你大部分同行停在第 1 级或第 2 级。第 3 级已经是少数派。<strong>第 4 级的人在用另一种方式工作。</strong></p>
+
+      <h3>一个周六下午的画面</h3>
+
+      <p>我在写股票分析工具，分析一只我看不懂的股票。</p>
+
+      <p>我打开对话框，敲下："这只股票值不值得看。"</p>
+
+      <p>AI 沉默了两秒，然后：</p>
+
+      <blockquote style="background: var(--bg-quote); border-left-color: var(--accent-soft); padding: 20px 24px; font-style: normal; font-size: 17px;">
+        检测到股票分析请求。我会启动 <code>stock-analyst-pro</code>：拉取过去 5 年财报、跑 DCF 估值（使用你在 <code>估值参数规则</code> 里定义的保守参数）、对比行业中位数、回测历史估值准确度。预计 2 分钟。
+      </blockquote>
+
+      <p><strong>我一个字都没教它"怎么分析股票"。</strong></p>
+
+      <p>那一刻我意识到，三国游戏教我的那件事，正在我所有其他项目里重演：</p>
+
+      <ul style="margin: 24px 0; padding-left: 24px; color: var(--ink-soft);">
+        <li><strong>平衡性审计 Skill</strong> → 给游戏用</li>
+        <li><strong>stock-analyst-pro Skill</strong> → 给股票分析用</li>
+        <li><strong>PRD 检查 Skill</strong> → 给 CRM 需求评审用</li>
+        <li><strong>英语打卡检测器</strong> → 给日常自律用</li>
+        <li><strong>飞书文档生成器</strong> → 给团队知识沉淀用</li>
+      </ul>
+
+      <p>每一个都是"一次性解决 → 流程化 → 知识化 → 产品化"这条曲线上的点。</p>
+
+      <figure class="game-plate">
+        <div class="plate-grid">
+          <img src="game-now-2.png" alt="现在版本 · 战场推演">
+        </div>
+        <figcaption class="plate-caption">
+          <span class="plate-label">Day 21 · 现场对照</span>
+          <span class="plate-text">同一场战斗——和第一版（Day 02 那张）乍看差不多。差别不在画面，在每一格背后：<strong>都被 500 局模拟跑过、被量化审计过一遍</strong>。我不是把游戏做得更好看，我是换了一种看它的方式。</span>
+        </figcaption>
+      </figure>
+
+      <a class="play-cta" href="https://three-kingdoms-beta.vercel.app/" target="_blank" rel="noopener">
+        <span class="play-cta-seal">体验</span>
+        <span class="play-cta-body">
+          <span class="play-cta-title">想亲自排兵布阵？</span>
+          <span class="play-cta-url">three-kingdoms-beta.vercel.app</span>
+        </span>
+        <span class="play-cta-arrow">→</span>
+      </a>
+
+      <div class="principle">
+        <div class="principle-tag">Day 21 + · 最终原则</div>
+        <p>你做的每一件重复三次以上的事，都应该爬上这条曲线。</p>
+        <p style="color:var(--ink-soft); font-size:16px;">不是"有空再优化"，<strong>爬曲线本身就是你的核心工作</strong>。PM 的时间应该花在两个地方：一是做新东西，二是把已经做的东西爬上这条曲线。其他都是消耗。游戏是我的"训练场"——在一个低风险、快反馈、自己全权负责的环境里，把这四级都走完一遍。然后，<strong>其他项目只是在复用这套肌肉记忆。</strong></p>
+      </div>
+    </section>
+
+
+    <div class="seal-divider" aria-hidden="true"><span class="seal">終</span></div>
+
+    <!-- EPILOGUE -->
+    <section class="day epilogue" id="epilogue">
+      <div class="day-header">
+        <div class="day-number">EPILOGUE · 尾声</div>
+        <h2 class="day-title">游戏还没做完，<br>但我做完了</h2>
+      </div>
+
+      <p>这个三国游戏现在还在迭代。玩家在加，功能在加，平衡性还在微调。</p>
+
+      <p>但对我来说，它早就不是一个游戏了。</p>
+
+      <blockquote style="font-size: 24px; color: var(--accent);">
+        它是我 2026 年所有项目的底层源代码。
+      </blockquote>
+
+      <p>每次我打开一个新项目——不管是分析股票、评审 PRD、搭 CRM 看板、做英语打卡检测器——我都会下意识地问自己<strong>四个问题</strong>：</p>
+
+      <div class="takeaway">
+        <div class="takeaway-label">给读者的四个问题</div>
+        <ol>
+          <li><strong>这里有没有反馈链？</strong>（如果有，需要本地模拟器）</li>
+          <li><strong>我已经踩过哪些坑？</strong>（如果坑重复，写进 memory）</li>
+          <li><strong>这件事会重复做吗？</strong>（如果会，流程化）</li>
+          <li><strong>它可以再往上走一级吗？</strong>（如果可以，Skill 化）</li>
+        </ol>
+      </div>
+
+      <p>这四个问题，<strong>全是游戏教我的</strong>。</p>
+
+      <p>写这篇文章不是想告诉你"我做了个游戏"。是想告诉你——如果你手边也有一个"下班后的小项目"，不要浪费它。它可能是你这一年认知升级最好的训练场。</p>
+
+      <div class="signoff">
+        最好的产品经理不是那个懂最多工具的人。<br>
+        是那个把自己的判断力结构化沉淀下来，<br>
+        并且每天都在爬杠杆曲线的人。
+      </div>
+
+      <div class="footer-meta">
+        <div>写于 <span class="accent">Claude Code</span> + Obsidian · 2026.04.26</div>
+        <div>本页本身，就是这套工作方法的一次产出——</div>
+        <div style="color: var(--accent); font-weight: 500;">从立意、结构、文案到这枚印章的位置，我没写一行 HTML。</div>
+      </div>
+
+    </section>
+
+  </article>
+
+  <!-- LIGHTBOX -->
+  <div class="lightbox" id="lightbox" aria-hidden="true">
+    <button class="lb-close" aria-label="关闭">ESC · 关闭</button>
+    <img id="lightbox-img" src="" alt="">
+  </div>
+
+  <!-- TOC -->
+  <aside class="toc">
+    <div class="toc-label"><span>目录</span><span class="toc-pct" id="tocPct">00%</span></div>
+    <div class="toc-rule" id="tocRule"></div>
+    <ol>
+      <li><a href="#day1"><span class="day-tag">DAY 01-03</span>代码工人期</a></li>
+      <li><a href="#day4"><span class="day-tag">DAY 04-10</span>失控期</a></li>
+      <li><a href="#day11"><span class="day-tag">DAY 11-20</span>沉淀期</a></li>
+      <li><a href="#day21"><span class="day-tag">DAY 21 +</span>杠杆期</a></li>
+      <li><a href="#epilogue"><span class="day-tag">END</span>尾声</a></li>
+    </ol>
+  </aside>
+
+</main>
+
+<script>
+  // Reading progress
+  const progress = document.getElementById('progress');
+  const tocPct = document.getElementById('tocPct');
+  const tocRule = document.getElementById('tocRule');
+  const article = document.querySelector('article');
+  function updateProgress() {
+    const scrollTop = window.scrollY;
+    const docHeight = article.offsetHeight - window.innerHeight;
+    const pct = Math.max(0, Math.min(100, Math.round((scrollTop / docHeight) * 100)));
+    const pctStr = String(pct).padStart(2, '0') + '%';
+    progress.textContent = pctStr;
+    if (tocPct) tocPct.textContent = pctStr;
+    if (tocRule) tocRule.style.setProperty('--pct', pct + '%');
+  }
+  window.addEventListener('scroll', updateProgress, { passive: true });
+  updateProgress();
+
+  // Active TOC
+  const sections = document.querySelectorAll('section.day');
+  const tocLinks = document.querySelectorAll('aside.toc a');
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const id = entry.target.id;
+        tocLinks.forEach(l => l.classList.toggle('active', l.getAttribute('href') === '#' + id));
+      }
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  sections.forEach(s => io.observe(s));
+
+  // Lightbox — click to zoom game-plate images
+  const lb = document.getElementById('lightbox');
+  const lbImg = document.getElementById('lightbox-img');
+  document.querySelectorAll('.game-plate img').forEach(img => {
+    img.addEventListener('click', () => {
+      lbImg.src = img.src;
+      lbImg.alt = img.alt;
+      lb.classList.add('active');
+    });
+  });
+  function closeLightbox() { lb.classList.remove('active'); }
+  lb.addEventListener('click', closeLightbox);
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && lb.classList.contains('active')) closeLightbox();
+  });
+</script>
+
+</body>
+</html>
