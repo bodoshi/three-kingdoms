@@ -1085,12 +1085,12 @@
 
     <section class="day" id="day4">
       <div class="day-header">
-        <div class="day-number">Day 04 — 10</div>
+        <div class="day-number">Day 04 — 05</div>
         <h2 class="day-title">失控期<br>——我发现自己在做一个<br>我看不懂的系统</h2>
       </div>
 
       <div class="day-lede">
-        这一周我没写一行新功能。我只干了一件事：<strong>说服自己"调数值"不是一个人能干的活。</strong>
+        这两天我没写一行新功能。我只干了一件事：<strong>说服自己"调数值"不是一个人能干的活。</strong>
       </div>
 
       <p>周一晚上，我坐下来处理周日那两句反馈——猛将流太强、曹操放哪都强。</p>
@@ -1122,12 +1122,12 @@
           <img src="sim-terminal.jpg" alt="500 局理性人模拟输出">
         </div>
         <figcaption class="plate-caption">
-          <span class="plate-label">Day 07 · 现场物证</span>
+          <span class="plate-label">Day 05 · 现场物证</span>
           <span class="plate-text"><code>node simulate_battles.js</code>——500 局理性人对战、分层抽样、智能选将、最优布阵。表面看一切还行：<strong>P1 胜率 52%、各回合 47-52%、克制触发 44%、技能主导 38%、方差主导 47%</strong>。但我把镜头往里推一层，看单个势力、单个武将的数据，画面就崩了。</span>
         </figcaption>
       </figure>
 
-      <p>前面一周我凭感觉追着改的那几个人——曹操、貂蝉，连带一整个"群雄"——sim 给我打了三巴掌：</p>
+      <p>前两天我凭感觉追着改的那几个人——曹操、貂蝉，连带一整个"群雄"——sim 给我打了三巴掌：</p>
 
       <div class="stats">
         <div class="stat">
@@ -1162,7 +1162,7 @@
 <span class="com"># 每改一处，必须全跑一遍。没有例外。</span></pre>
 
       <div class="principle">
-        <div class="principle-tag">Day 4-10 · 原则</div>
+        <div class="principle-tag">Day 4-5 · 原则</div>
         <p>凡是有"反馈链"的产品，都需要一个本地模拟器。</p>
         <p style="color:var(--ink-soft); font-size:16px;"><strong>反馈链的意思是：</strong>你的动作 → 用户的反应 → 系统状态变化 → 影响下一个用户的体验。游戏有。增长漏斗有。定价策略有。推荐系统有。<strong>CRM 里的审批流也有。</strong></p>
         <p style="color:var(--ink-soft); font-size:16px;"><strong>本地模拟器的意思也很朴素——拿我的 <code>simulate_battles.js</code> 拆开给你看：</strong></p>
@@ -1190,7 +1190,7 @@
       </div>
 
       <p style="color: var(--ink-mute); font-size: 15px; margin-top: 40px; font-style: italic;">
-        那一周我没写一行游戏代码，但我给自己装了一副以后看所有产品都会用到的眼镜。<strong style="color: var(--ink-soft);">但眼镜还不够——我很快发现，AI 每次对话都会忘记我教过它的东西。</strong>
+        那几天我没写一行游戏代码，但我给自己装了一副以后看所有产品都会用到的眼镜。<strong style="color: var(--ink-soft);">但眼镜还不够——我很快发现，AI 每次对话都会忘记我教过它的东西。</strong>
       </p>
     </section>
 
@@ -1200,7 +1200,7 @@
 
     <section class="day" id="day11">
       <div class="day-header">
-        <div class="day-number">Day 11 — 20</div>
+        <div class="day-number">Day 06 — 10</div>
         <h2 class="day-title">沉淀期<br>——我发现 AI 会忘，<br>但我不能</h2>
       </div>
 
@@ -1257,7 +1257,7 @@
           <img src="brain-obsidian.png" alt="外挂大脑 · Obsidian 开发日记">
         </div>
         <figcaption class="plate-caption">
-          <span class="plate-label">Day 14 · 外挂大脑</span>
+          <span class="plate-label">Day 08 · 外挂大脑</span>
           <span class="plate-text">这是 Obsidian 里的开发日记——<strong>每次对话结束，AI 自动追加一段</strong>，从 Day 1 的"想法很简单"到 Day 5 的"支配策略"一字不差。我已经不记得 Day 4 发生了什么，但<strong>它记得</strong>。下次对话开始，它先读这份，再回答我。</span>
         </figcaption>
       </figure>
@@ -1289,7 +1289,7 @@
           <img src="bug-priority.png" alt="AI 代入玩家视角生成的 bug 优先级表">
         </div>
         <figcaption class="plate-caption">
-          <span class="plate-label">Day 18 · 现场物证</span>
+          <span class="plate-label">Day 10 · 现场物证</span>
           <span class="plate-text">一次"代入玩家视角找茬"跑出来的结果：<strong>16 条问题，P0/P1/P2 分级，每条都标了影响范围和修复耗时</strong>。锦标赛进度持久化、死成就、splice 边界 bug、宝物保底机制……有些我自己从来没意识到。</span>
         </figcaption>
       </figure>
@@ -1301,7 +1301,7 @@
       <h3 class="mini">沉淀物 · 03 · 外挂大脑 + 代入视角</h3>
 
       <div class="principle">
-        <div class="principle-tag">Day 11-20 · 原则</div>
+        <div class="principle-tag">Day 6-10 · 原则</div>
         <p>AI 时代 PM 的护城河 = 让 AI <strong>有记忆</strong>，也 <strong>有视角</strong>。</p>
         <p style="color:var(--ink-soft); font-size:16px;"><strong>记忆</strong>是让它记得你做过什么——不是存在脑子里（会累、会忘、会被新项目覆盖），不是存在文档里（不会在下次对话时自动出现在 AI 面前），而是<strong>存在一个 AI 每次都会读到的地方</strong>，并且结构化（有 Why 和 How to apply，不是一堆散文）。这就是为什么我现在 <code>memory/</code> 下有 <em class="num">56</em> 个文件——它们不是笔记，它们是我的外部器官。</p>
         <p style="color:var(--ink-soft); font-size:16px;"><strong>视角</strong>是让它替你挑刺——你一个人只能从 PM 视角看自己的产品，但 AI 可以随时切换成"第一次打开游戏的新玩家"、"最资深的老玩家"、"一线客户经理"、"合规审查员"……它不会像你那样自我辩护。<strong>memory 解决"AI 会忘"，代入视角解决"你会偏"。两件事你都得做。</strong></p>
@@ -1336,7 +1336,7 @@
 
     <section class="day" id="day21">
       <div class="day-header">
-        <div class="day-number">Day 21 +</div>
+        <div class="day-number">Day 11 — 14</div>
         <h2 class="day-title">杠杆期<br>——我把自己复制了出去</h2>
       </div>
 
@@ -1485,7 +1485,7 @@
         </div>
         <figcaption class="plate-caption">
           <span class="plate-label">尾声 · 迭代节奏</span>
-          <span class="plate-text">一个月左右，从 <strong>v1.0.0</strong> 一路迭到 <strong>v2.4.0</strong>——AI 史官评定、叙事加速、战场史官、名人堂、跨服排行、宝物大扩充、群雄争霸、平衡性大调整……没有排期、没有周会、没有人催。推我一版一版更新的东西只有一个：<strong>我自己还想看它变成什么样</strong>。兴趣、探索、热爱，是真的会让产出翻倍的。</span>
+          <span class="plate-text">两周左右，从 <strong>v1.0.0</strong> 一路迭到 <strong>v2.4.0</strong>——AI 史官评定、叙事加速、战场史官、名人堂、跨服排行、宝物大扩充、群雄争霸、平衡性大调整……没有排期、没有周会、没有人催。推我一版一版更新的东西只有一个：<strong>我自己还想看它变成什么样</strong>。兴趣、探索、热爱，是真的会让产出翻倍的。</span>
         </figcaption>
       </figure>
 
@@ -1533,9 +1533,9 @@
     <div class="toc-rule" id="tocRule"></div>
     <ol>
       <li><a href="#day1"><span class="day-tag">DAY 01-03</span>代码工人期</a></li>
-      <li><a href="#day4"><span class="day-tag">DAY 04-10</span>失控期</a></li>
-      <li><a href="#day11"><span class="day-tag">DAY 11-20</span>沉淀期</a></li>
-      <li><a href="#day21"><span class="day-tag">DAY 21 +</span>杠杆期</a></li>
+      <li><a href="#day4"><span class="day-tag">DAY 04-05</span>失控期</a></li>
+      <li><a href="#day11"><span class="day-tag">DAY 06-10</span>沉淀期</a></li>
+      <li><a href="#day21"><span class="day-tag">DAY 11-14</span>杠杆期</a></li>
       <li><a href="#epilogue"><span class="day-tag">END</span>尾声</a></li>
     </ol>
   </aside>
