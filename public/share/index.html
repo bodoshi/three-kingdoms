@@ -993,7 +993,7 @@
         <span>约 20 分钟</span>
       </div>
       <h1>一个三国游戏<br>让我重写了自己的工作方式</h1>
-      <p class="subtitle">两周，一个下班项目，把我从"和 AI 共事的第一天"推到了第四级杠杆。<br>这是给同行产品经理的一份田野笔记。</p>
+      <p class="subtitle">两周，一个下班项目，把我从"和 AI 共事的第一天"推到了第四级杠杆。<br>这是给同行产品经理的一份复盘笔记。</p>
       <div class="byline">
         <img class="avatar" src="avatar.jpg" alt="bodoshi" />
         <div>
@@ -1046,7 +1046,7 @@
         </div>
         <figcaption class="plate-caption">
           <span class="plate-label">Day 02 · 现场物证</span>
-          <span class="plate-text">第一版——看起来什么都对，其实每一格都藏着问题。当时的我还没意识到：这正是 AI 帮我掩盖掉的东西。</span>
+          <span class="plate-text">第一版——看起来什么都对，其实每一格都藏着问题。当时的我还没意识到：这正是 AI 不会替我问的那些问题。</span>
         </figcaption>
       </figure>
 
@@ -1093,9 +1093,9 @@
         这一周我没写一行新功能。我只干了一件事：<strong>说服自己"调数值"不是一个人能干的活。</strong>
       </div>
 
-      <p>周一晚上，朋友试玩完丢了一句话给我："曹操怎么感觉放哪都强？"</p>
+      <p>周一晚上，我坐下来处理周日那两句反馈——猛将流太强、曹操放哪都强。</p>
 
-      <p>我的反应特别 PM——<strong>打开表格，锁定问题，一个个调</strong>。曹操在统帅位强是因为五维总和高，那给他加个"间谍位"的负向惩罚（penalty）不就好了？</p>
+      <p>我的反应特别 PM——<strong>打开表格，锁定问题，一个个调</strong>。曹操放哪都强是因为五维总和高，那给他加个"主公位"的负向惩罚（penalty）压一压，不就好了？</p>
 
       <p>改完，跑两盘。嗯，曹操老实了。</p>
 
@@ -1123,9 +1123,11 @@
         </div>
         <figcaption class="plate-caption">
           <span class="plate-label">Day 07 · 现场物证</span>
-          <span class="plate-text"><code>node sim.js</code>——500 局理性人对战、分层抽样、智能选将、最优布阵。<strong>P1 胜率 52%、各回合 47-52%、克制触发 44%、技能主导 38%、方差主导 47%</strong>。六行数字下来，"靠感觉调数值"这个想法彻底说服不了我。</span>
+          <span class="plate-text"><code>node simulate_battles.js</code>——500 局理性人对战、分层抽样、智能选将、最优布阵。表面看一切还行：<strong>P1 胜率 52%、各回合 47-52%、克制触发 44%、技能主导 38%、方差主导 47%</strong>。但我把镜头往里推一层，看单个势力、单个武将的数据，画面就崩了。</span>
         </figcaption>
       </figure>
+
+      <p>前面一周我凭感觉追着改的那几个人——曹操、貂蝉，连带一整个"群雄"——sim 给我打了三巴掌：</p>
 
       <div class="stats">
         <div class="stat">
@@ -1162,7 +1164,15 @@
       <div class="principle">
         <div class="principle-tag">Day 4-10 · 原则</div>
         <p>凡是有"反馈链"的产品，都需要一个本地模拟器。</p>
-        <p style="color:var(--ink-soft); font-size:16px;"><strong>反馈链的意思是：</strong>你的动作 → 用户的反应 → 系统状态变化 → 影响下一个用户的体验。游戏有。增长漏斗有。定价策略有。推荐系统有。<strong>CRM 里的审批流也有。</strong><strong>本地模拟器的意思也很朴素：</strong>一个跑在自己电脑上的脚本，把产品的反馈链简化后自己推演一遍（我这里就是 <code>sim.js</code>，500 局自动对战）。没有它，你就只能"改了发出去等用户骂"；有了它，你能在自己电脑上骂自己 500 遍。</p>
+        <p style="color:var(--ink-soft); font-size:16px;"><strong>反馈链的意思是：</strong>你的动作 → 用户的反应 → 系统状态变化 → 影响下一个用户的体验。游戏有。增长漏斗有。定价策略有。推荐系统有。<strong>CRM 里的审批流也有。</strong></p>
+        <p style="color:var(--ink-soft); font-size:16px;"><strong>本地模拟器的意思也很朴素——拿我的 <code>simulate_battles.js</code> 拆开给你看：</strong></p>
+        <ol style="margin: 12px 0 16px 0; padding-left: 22px; color: var(--ink-soft); font-size:16px; line-height: 1.85;">
+          <li><strong>造一批假用户。</strong>我从 160 个武将里分层抽 30 人，保证每个势力至少 6 个——等价于"造 500 个符合目标画像分布的假用户"。</li>
+          <li><strong>让他们按真实规则动一遍。</strong>我让他们走完 Ban/Pick 28 手、匈牙利算法布阵、7 回合战斗——等价于"让他们走完完整的漏斗/审批流/下单路径"。</li>
+          <li><strong>把结果聚合成几个可判的指标。</strong>我输出的是势力胜率、位置 TOP3/BOTTOM3、碾压局占比——等价于"转化率分布、哪类单据堵在第 3 步、毛利曲线"。</li>
+          <li><strong>改一个输入，整套重跑。</strong>把曹操五维改掉一格，500 局瞬间跑完，看哪些指标动了、动多少。<strong>你得到的是因果，不是手感。</strong></li>
+        </ol>
+        <p style="color:var(--ink-soft); font-size:16px;">换到你的场景：做增长，你写一个脚本模拟 1000 个用户按转化率走过漏斗，挪一个按钮、换一套文案，就是改一个系数、重跑一次；做定价，你跑 N 条需求曲线看毛利分布；做 CRM 审批流，你灌 500 条造出来的单据看哪条卡住了。<strong>没有它，你改了就只能发出去等用户骂；有了它，你能在自己电脑上先骂自己 500 遍。</strong></p>
       </div>
 
       <div class="echo">
@@ -1195,7 +1205,7 @@
       </div>
 
       <div class="day-lede">
-        这一周的关键词是挫败。我问了 AI <em>三次</em>同一个问题，它三次给了我三个不同的答案——没有哪个是对的。
+        这几天的关键词是挫败。我问了 AI <em>三次</em>同一个问题，它三次给了我三个不同的答案——没有哪个是对的。
       </div>
 
       <p>那是一个周二晚上，我在给游戏加"锦标赛"模式。我熟练地打开对话框："帮我在锦标赛模式里也支持阵型选择。"</p>
@@ -1231,7 +1241,7 @@
 
       <p>我之前一直以为"提示词工程"是在研究怎么把一句话写得更精准。那天我才明白——<strong>真正的杠杆不在那一句话里，而在 AI 每次对话开始前，它读到了什么。</strong></p>
 
-      <h3>那一周我做的事，一件跟代码都没关系</h3>
+      <h3>那几天我做的事，一件跟代码都没关系</h3>
 
       <ul style="margin: 24px 0; padding-left: 24px; color: var(--ink-soft);">
         <li style="margin-bottom: 10px;">建了 <code>three-kingdoms-principles.md</code>：<strong>11 条设计原则</strong>（叙事沉浸 &gt; 数值深度、隐藏数值展示体验、每个角色都有自己的春天……）</li>
@@ -1288,10 +1298,13 @@
 
       <p><strong>AI 不是只能当个会写代码的工具人。它是一组可以随时切换的视角——只要你会让它切。</strong></p>
 
+      <h3 class="mini">沉淀物 · 03 · 外挂大脑 + 代入视角</h3>
+
       <div class="principle">
         <div class="principle-tag">Day 11-20 · 原则</div>
-        <p>AI 时代 PM 的护城河 = 把自己的判断力结构化地存下来。</p>
-        <p style="color:var(--ink-soft); font-size:16px;">不是存在脑子里（会累、会忘、会被新项目覆盖）。不是存在文档里（不会在下次对话时自动出现在 AI 面前）。<strong>存在一个 AI 每次都会读到的地方</strong>，并且结构化（有 Why 和 How to apply，不是一堆散文）。这就是为什么我现在 <code>memory/</code> 下有 <em class="num">56</em> 个文件——它们不是笔记，它们是我的外部器官。</p>
+        <p>AI 时代 PM 的护城河 = 让 AI <strong>有记忆</strong>，也 <strong>有视角</strong>。</p>
+        <p style="color:var(--ink-soft); font-size:16px;"><strong>记忆</strong>是让它记得你做过什么——不是存在脑子里（会累、会忘、会被新项目覆盖），不是存在文档里（不会在下次对话时自动出现在 AI 面前），而是<strong>存在一个 AI 每次都会读到的地方</strong>，并且结构化（有 Why 和 How to apply，不是一堆散文）。这就是为什么我现在 <code>memory/</code> 下有 <em class="num">56</em> 个文件——它们不是笔记，它们是我的外部器官。</p>
+        <p style="color:var(--ink-soft); font-size:16px;"><strong>视角</strong>是让它替你挑刺——你一个人只能从 PM 视角看自己的产品，但 AI 可以随时切换成"第一次打开游戏的新玩家"、"最资深的老玩家"、"一线客户经理"、"合规审查员"……它不会像你那样自我辩护。<strong>memory 解决"AI 会忘"，代入视角解决"你会偏"。两件事你都得做。</strong></p>
       </div>
 
       <div class="echo">
@@ -1303,7 +1316,7 @@
           </li>
           <li>
             <strong>做 CRM PRD 评审</strong>
-            我把"PRD 必须覆盖哪些细节"写成了 <code>project_prd_detail_standards.md</code>。现在新 PRD 上传，AI <em class="num">10</em> 秒内给我一份缺漏清单。
+            我把"PRD 必须覆盖哪些细节"写成了 <code>project_prd_detail_standards.md</code>。新 PRD 上传，AI <em class="num">10</em> 秒给我缺漏清单；再让它"代入一线柜员视角"跑一遍，又能翻出一批"业务实际执行会卡住"的问题——这是我自己坐在办公室里列不出来的。
           </li>
           <li>
             <strong>用户画像</strong>
@@ -1313,7 +1326,7 @@
       </div>
 
       <p style="color: var(--ink-mute); font-size: 15px; margin-top: 40px; font-style: italic;">
-        这一周我没写新功能，但我给自己和 AI 之间搭了一座桥。从此我们不是每次从零开始。<strong style="color: var(--ink-soft);">但这还不是终点——第二周的某一天，我干了一件让自己震惊的事。</strong>
+        这几天我没写新功能，但我给自己和 AI 之间搭了一座桥。从此我们不是每次从零开始。<strong style="color: var(--ink-soft);">但这还不是终点——第二周的某一天，我干了一件让自己震惊的事。</strong>
       </p>
     </section>
 
@@ -1344,6 +1357,16 @@
       </ol>
 
       <p>从那天起，<strong>我再也没"感觉过"平衡性了</strong>。我说"审计平衡性"，它给我一张表。</p>
+
+      <figure class="game-plate">
+        <div class="plate-grid">
+          <img src="sim-stability.png" alt="平衡性审计 · 多轮稳定性表">
+        </div>
+        <figcaption class="plate-caption">
+          <span class="plate-label">Day 14 · Skill 输出</span>
+          <span class="plate-text">Skill 跑出来的样子大概是这样：同一套配置连跑三轮（Run1/Run2/Run3），看每一项关键指标是不是都稳在目标区间——<strong>先手偏差、四势力胜率、拉锯战 / 碾压局占比</strong>，后面一列是判定。我不需要再"感觉"什么是平衡，我只需要看这一列 √ 有没有全绿。</span>
+        </figcaption>
+      </figure>
 
       <h3>我当时没意识到，但这是我做过最重要的一件事</h3>
 
@@ -1384,7 +1407,7 @@
         <li><strong>第 4 级：</strong>AI 识别出情境自动做 100 次（产品化）</li>
       </ul>
 
-      <p>你大部分同行停在第 1 级或第 2 级。第 3 级已经是少数派。<strong>第 4 级的人在用另一种方式工作。</strong></p>
+      <p>说实话，一年前的我也一直停在第 1 级——这也是大多数 PM 日常工作的状态。第 3 级是少数派，<strong>第 4 级的人，已经在用另一种方式工作了。</strong></p>
 
       <h3>一个周六下午的画面</h3>
 
@@ -1417,7 +1440,7 @@
           <img src="game-now-2.png" alt="现在版本 · 战场推演">
         </div>
         <figcaption class="plate-caption">
-          <span class="plate-label">Day 21 · 现场对照</span>
+          <span class="plate-label">Day 14 · 现场对照</span>
           <span class="plate-text">同一场战斗——和第一版（Day 02 那张）乍看差不多。差别不在画面，在每一格背后：<strong>都被 500 局模拟跑过、被量化审计过一遍</strong>。我不是把游戏做得更好看，我是换了一种看它的方式。</span>
         </figcaption>
       </figure>
@@ -1432,7 +1455,7 @@
       </a>
 
       <div class="principle">
-        <div class="principle-tag">Day 21 + · 最终原则</div>
+        <div class="principle-tag">Day 14 + · 最终原则</div>
         <p>你做的每一件重复三次以上的事，都应该爬上这条曲线。</p>
         <p style="color:var(--ink-soft); font-size:16px;">不是"有空再优化"，<strong>爬曲线本身就是你的核心工作</strong>。PM 的时间应该花在两个地方：一是做新东西，二是把已经做的东西爬上这条曲线。其他都是消耗。游戏是我的"训练场"——在一个低风险、快反馈、自己全权负责的环境里，把这四级都走完一遍。然后，<strong>其他项目只是在复用这套肌肉记忆。</strong></p>
       </div>
@@ -1456,12 +1479,22 @@
         它是我 2026 年所有项目的底层源代码。
       </blockquote>
 
+      <figure class="game-plate">
+        <div class="plate-grid">
+          <img src="changelog.png" alt="游戏内更新日志 · v1.0.0 → v2.4.0">
+        </div>
+        <figcaption class="plate-caption">
+          <span class="plate-label">尾声 · 迭代节奏</span>
+          <span class="plate-text">一个月左右，从 <strong>v1.0.0</strong> 一路迭到 <strong>v2.4.0</strong>——AI 史官评定、叙事加速、战场史官、名人堂、跨服排行、宝物大扩充、群雄争霸、平衡性大调整……没有排期、没有周会、没有人催。推我一版一版更新的东西只有一个：<strong>我自己还想看它变成什么样</strong>。兴趣、探索、热爱，是真的会让产出翻倍的。</span>
+        </figcaption>
+      </figure>
+
       <p>每次我打开一个新项目——不管是分析股票、评审 PRD、搭 CRM 看板、做英语打卡检测器——我都会下意识地问自己<strong>四个问题</strong>：</p>
 
       <div class="takeaway">
         <div class="takeaway-label">给读者的四个问题</div>
         <ol>
-          <li><strong>这里有没有反馈链？</strong>（如果有，需要本地模拟器）</li>
+          <li><strong>我的改动会牵动下一批用户吗？</strong>（如果会，先在自己电脑上跑 500 遍）</li>
           <li><strong>我已经踩过哪些坑？</strong>（如果坑重复，写进 memory）</li>
           <li><strong>这件事会重复做吗？</strong>（如果会，流程化）</li>
           <li><strong>它可以再往上走一级吗？</strong>（如果可以，Skill 化）</li>
