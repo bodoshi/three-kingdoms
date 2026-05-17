@@ -1,0 +1,13 @@
+{
+  "name": "EP Page Builder",
+  "id": "ep-page-builder-001",
+  "api": "1.0.0",
+  "main": "dist/code.js",
+  "ui": "dist/ui.html",
+  "networkAccess": {
+    "allowedDomains": ["*"],
+    "reasoning": "Connect to local WebSocket bridge for receiving layout specs from AI"
+  },
+  "editorType": ["figma"],
+  "documentAccess": "dynamic-page"
+}

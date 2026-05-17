@@ -11,3 +11,5 @@
 !api/
 !api/hall-of-fame.js
 !api/ai-proxy.js
+!figma-plugin-ep/
+!figma-plugin-ep/**
