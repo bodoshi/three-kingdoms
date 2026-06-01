@@ -13,3 +13,4 @@
 !api/ai-proxy.js
 !figma-plugin-ep/
 !figma-plugin-ep/**
+figma-plugin-ep/node_modules/

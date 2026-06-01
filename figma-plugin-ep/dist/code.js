@@ -221,7 +221,7 @@ async function buildPage(spec) {
   var content = makeFrame('Content', 'VERTICAL', { padding: 20, gap: 16, fill: EP_COLORS.fillLight });
   appendFill(main, content, 'FILL', 'FILL');
 
-  var children = spec.layout.content.children || [];
+  var children = (spec.layout.content && spec.layout.content.children) || [];
   for (var i = 0; i < children.length; i++) {
     var child = children[i];
     if (child.type === 'kpi-row') {
