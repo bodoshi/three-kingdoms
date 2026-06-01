@@ -1,5 +1,6 @@
 *
 !.gitignore
+!.gitattributes
 !sim.js
 !package.json
 !vercel.json
